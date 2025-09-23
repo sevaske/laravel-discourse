@@ -38,8 +38,6 @@ class AdminApi extends ApiService
 
     public function logoutUser($id): bool
     {
-        $response = $this->post("/admin/users/{$id}/log_out.json");
-
-        return $response->getHttpStatusCode()->success === 'OK';
+        return $this->post("/admin/users/{$id}/log_out.json")->success === 'OK';
     }
 }
