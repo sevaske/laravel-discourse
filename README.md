@@ -88,7 +88,7 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Sevaske\LaravelDiscourse\Facades\Discourse;
 
-Route::middleware(['web', 'auth', 'discourse.sso'])->get('/discourse/sso', function(Request $request){
+Route::middleware(['web', 'auth', 'discourse.sso.validate'])->get('/discourse/sso', function(Request $request){
     $redirectTo = Discourse::connect($request->query('sso'), [
         'id' => $request->user()->id,
         'email' => $request->user()->email,

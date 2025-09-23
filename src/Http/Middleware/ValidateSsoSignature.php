@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Sevaske\Discourse\Exceptions\InvalidRequestSignature;
 use Sevaske\Discourse\Services\Signer;
 
-class ValidateSignature
+class ValidateSsoSignature
 {
     public function __construct(protected Signer $signer) {}
 
