@@ -8,11 +8,11 @@ class SiteApi extends ApiService
 {
     public function info()
     {
-        return $this->get('/site.json');
+        return $this->request('GET', '/site.json');
     }
 
     public function basicInfo(): DiscourseResponseContract
     {
-        return $this->get('/site/basic-info.json');
+        return $this->request('GET', '/site/basic-info.json');
     }
 }

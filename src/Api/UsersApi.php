@@ -9,15 +9,15 @@ class UsersApi extends ApiService
     public function retrieve(string $usernameOrExternalId, bool $byExternalId = false): DiscourseResponseContract
     {
         if ($byExternalId) {
-            return $this->get("/u/by-external/{$usernameOrExternalId}.json");
+            return $this->request('GET', "/u/by-external/{$usernameOrExternalId}.json");
         }
 
-        return $this->get("/u/{$usernameOrExternalId}.json");
+        return $this->request('GET', "/u/{$usernameOrExternalId}.json");
     }
 
     public function create(string $name, string $email, string $password, string $username, array $extra = []): DiscourseResponseContract
     {
-        return $this->post('/users.json', [
+        return $this->request('POST', '/users.json', [
             'name' => $name,
             'email' => $email,
             'password' => $password,
@@ -28,7 +28,7 @@ class UsersApi extends ApiService
 
     public function update(string $username, string $name, array $extra): DiscourseResponseContract
     {
-        return $this->put('/u/'.$username.'.json', [
+        return $this->request('PUT', '/u/'.$username.'.json', [
             'name' => $name,
             ...$extra,
         ]);

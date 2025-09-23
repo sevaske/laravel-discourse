@@ -8,7 +8,7 @@ class AdminApi extends ApiService
 {
     public function user(int $id): DiscourseResponseContract
     {
-        return $this->get("/admin/users/{$id}.json");
+        return $this->request('GET', "/admin/users/{$id}.json");
     }
 
     public function deleteUser(
@@ -18,7 +18,7 @@ class AdminApi extends ApiService
         ?bool $blockUrls = null,
         ?bool $blockIp = null
     ): DiscourseResponseContract {
-        return $this->delete("/admin/users/{$id}.json", [
+        return $this->request('DELETE', "/admin/users/{$id}.json", [
             'delete_posts' => $deletePosts,
             'block_email' => $blockEmail,
             'block_urls' => $blockUrls,
@@ -28,16 +28,16 @@ class AdminApi extends ApiService
 
     public function activateUser(int $id): bool
     {
-        return $this->put("/admin/users/{$id}/activate.json")->success === 'OK';
+        return $this->request('PUT', "/admin/users/{$id}/activate.json")->success === 'OK';
     }
 
     public function deactivateUser(int $id): bool
     {
-        return $this->put("/admin/users/{$id}/deactivate.json")->success === 'OK';
+        return $this->request('PUT', "/admin/users/{$id}/deactivate.json")->success === 'OK';
     }
 
     public function logoutUser($id): bool
     {
-        return $this->post("/admin/users/{$id}/log_out.json")->success === 'OK';
+        return $this->request('POST', "/admin/users/{$id}/log_out.json")->success === 'OK';
     }
 }

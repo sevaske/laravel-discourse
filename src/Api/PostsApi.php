@@ -10,22 +10,22 @@ class PostsApi extends ApiService
     {
         $params = $before === null ? [] : ['before' => $before];
 
-        return $this->get('/posts.json', $params);
+        return $this->request('GET', '/posts.json', $params);
     }
 
     public function retrieve($id): DiscourseResponseContract
     {
-        return $this->get("/posts/{$id}.json");
+        return $this->request('GET', "/posts/{$id}.json");
     }
 
     public function delete($id): DiscourseResponseContract
     {
-        return parent::delete("/posts/{$id}.json");
+        return $this->request('DELETE', "/posts/{$id}.json");
     }
 
     public function locked($id, bool $locked): DiscourseResponseContract
     {
-        return $this->put("/posts/{$id}/locked.json", [
+        return $this->request('PUT', "/posts/{$id}/locked.json", [
             'locked' => $locked ? 'true' : 'false',
         ]);
     }
