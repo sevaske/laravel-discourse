@@ -22,7 +22,7 @@ return [
     'sso' => [
         'enabled' => env('DISCOURSE_SSO_ENABLED', false),
         'uri' => env('DISCOURSE_SSO_URI', '/discourse/sso'),
-        'middleware' => ['web', 'auth', 'discourse.sso'],
+        'middleware' => ['discourse.sso.enabled', 'web', 'auth', 'discourse.sso.validate'],
 
         // user attributes to provide discourse
         'user' => [
