@@ -1,0 +1,85 @@
+{
+    "name": "sevaske/laravel-discourse",
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.10",
+        "illuminate/contracts": "^10.0||^11.0||^12.0",
+        "sevaske/discourse": "^1.0.1",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.14",
+        "nunomaduro/collision": "^8.1.1||^7.10.0",
+        "orchestra/testbench": "^9.0.0||^8.22.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5"
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare",
+            "@composer run prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "@composer run build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "analyse": "vendor/bin/phpstan analyse",
+        "format": "vendor/bin/pint",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "lint": [
+            "@php vendor/bin/phpstan analyse src"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sevaske\\LaravelDiscourse\\Providers\\DiscourseServiceProvider"
+            ],
+            "aliases": {
+                "Payfort": "Sevaske\\LaravelDiscourse\\Facades\\Discourse"
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Sevaske\\LaravelDiscourse\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sevaske\\LaravelDiscourse\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "sevaske"
+        }
+    ],
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "discourse"
+    ],
+    "homepage": "https://github.com/sevaske/discourse-laravel"
+}
