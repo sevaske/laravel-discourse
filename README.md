@@ -3,11 +3,10 @@
 [![Packagist](https://img.shields.io/packagist/v/sevaske/laravel-discourse.svg)](https://packagist.org/packages/sevaske/laravel-discourse)
 [![License](https://img.shields.io/github/license/sevaske/laravel-discourse.svg)](LICENSE)
 
-> **Laravel wrapper for [sevaske/discourse](https://github.com/sevaske/discourse).**  
-> This package provides simple integration of Discourse API and SSO (Single Sign-On) into your Laravel application.  
-> For a full list of available API endpoints and features, see the core [sevaske/discourse](https://github.com/sevaske/discourse) package.
+**Laravel wrapper for [sevaske/discourse](https://github.com/sevaske/discourse).**  
+This package provides simple integration of Discourse API and SSO (Single Sign-On) into your Laravel application.  
+For a full list of available API endpoints and features, see the core [sevaske/discourse](https://github.com/sevaske/discourse) package.
 
----
 
 ## ✨ Features
 
@@ -16,7 +15,6 @@
 - ⚡ **Laravel-ready** — comes with Service Provider, Facade, and Middleware.
 - 🧩 Built on top of [`sevaske/discourse`](https://github.com/sevaske/discourse).
 
----
 
 ## 📦 Installation
 
@@ -25,6 +23,7 @@ Install via Composer:
 ```bash
 composer require sevaske/laravel-discourse
 ```
+
 
 ## ⚙️ Configuration
 
@@ -53,7 +52,6 @@ DISCOURSE_API_USERNAME=system
 DISCOURSE_SECRET=super-secret
 ```
 
----
 
 ## 🚀 Usage
 
@@ -101,7 +99,6 @@ Route::middleware(['web', 'auth', 'discourse.sso'])->get('/discourse/sso', funct
 
 ```
 
----
 
 ## 🛠 Testing
 
