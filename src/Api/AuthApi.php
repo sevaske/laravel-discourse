@@ -8,6 +8,6 @@ class AuthApi extends ApiService
     {
         $response = $this->post("/admin/users/{$userId}/log_out.json");
 
-        return ($response['success'] ?? null) === 'OK';
+        return $response->getHttpStatusCode() === 200;
     }
 }

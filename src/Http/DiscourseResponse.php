@@ -11,10 +11,11 @@ class DiscourseResponse implements DiscourseResponseContract
 {
     use HasAttributes;
 
-    public function __construct(protected ResponseInterface|array $rawResponse)
+    public function __construct(protected ?ResponseInterface $rawResponse, protected ?int $httpStatusCode = null)
     {
         if ($this->rawResponse instanceof ResponseInterface) {
             $this->attributes = self::parse($this->rawResponse);
+            $this->httpStatusCode = $this->httpStatusCode ?: $this->rawResponse->getStatusCode();
         } else {
             $this->attributes = $this->response;
         }
@@ -52,5 +53,10 @@ class DiscourseResponse implements DiscourseResponseContract
         }
 
         return (array) $parsed;
+    }
+
+    public function getHttpStatusCode(): ?int
+    {
+        return $this->httpStatusCode;
     }
 }
