@@ -2,8 +2,10 @@
 
 namespace Sevaske\LaravelDiscourse;
 
+use Closure;
 use Illuminate\Support\Traits\Macroable;
 use Sevaske\Discourse\Exceptions\DiscourseException;
+use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Connect\RequestPayload;
 use Sevaske\Discourse\Services\Connect\ResponsePayload;
 use Sevaske\Discourse\Services\Signer;
@@ -13,17 +15,28 @@ class Discourse
 {
     use Macroable;
 
-    public function __construct(protected Signer $signer, protected Api $api) {}
+    protected ?Api $api = null;
+
+    public function __construct(protected Signer $signer, protected Closure $apiFactory) {}
+
+    public function signer(): Signer
+    {
+        return $this->signer;
+    }
 
     public function api(): Api
     {
+        if ($this->api === null) {
+            $this->api = ($this->apiFactory)();
+        }
+
         return $this->api;
     }
 
     /**
      * @throws DiscourseException
      */
-    public function connect(DiscourseUser|array $user, string $sso): string
+    public function connect(string $sso, DiscourseUser|array $user): string
     {
         if ($user instanceof DiscourseUser) {
             $userId = $user->getId();
@@ -48,7 +61,7 @@ class Discourse
         }
 
         $requestPayload = new RequestPayload($sso);
-        $response = (new ResponsePayload($this->signer))->build(
+        $response = (new ResponsePayload($this->signer()))->build(
             $requestPayload->nonce(),
             $userId,
             $email,
@@ -57,6 +70,6 @@ class Discourse
             })
         );
 
-        return $requestPayload->returnUrl().'?'.$response;
+        return $requestPayload->buildReturnUrl($response);
     }
 }

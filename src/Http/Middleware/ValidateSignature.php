@@ -4,20 +4,24 @@ namespace Sevaske\LaravelDiscourse\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Sevaske\Discourse\Contracts\DiscourseExceptionContract;
 use Sevaske\Discourse\Exceptions\InvalidRequestSignature;
 use Sevaske\Discourse\Services\Signer;
 
 class ValidateSignature
 {
+    public function __construct(protected Signer $signer) {}
+
     /**
      * Handle an incoming request.
      *
+     * @param Request $request
+     * @param Closure $next
+     *
      * @return mixed
      *
-     * @throws DiscourseExceptionContract
+     * @throws InvalidRequestSignature
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         if (! $payload = $request->query('sso')) {
             throw new InvalidRequestSignature('The payload is not passed');
@@ -27,10 +31,8 @@ class ValidateSignature
             throw new InvalidRequestSignature('The signature is not passed');
         }
 
-        $signer = app(Signer::class);
-
-        if (! $signer->validate($signature, $payload)) {
-            throw new InvalidRequestSignature;
+        if (! $this->signer->validate($signature, $payload)) {
+            throw new InvalidRequestSignature('The signature is invalid.');
         }
 
         return $next($request);
