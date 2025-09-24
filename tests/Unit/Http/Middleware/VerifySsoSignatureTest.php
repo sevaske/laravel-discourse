@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
-use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
 use Sevaske\Discourse\Exceptions\InvalidRequestSignature;
 use Sevaske\Discourse\Services\Signer;
+use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
 
 it('throws if sso payload is missing', function () {
     $signer = Mockery::mock(Signer::class);
