@@ -79,7 +79,7 @@ return [
         'controller' => env('DISCOURSE_SSO_CONTROLLER', \Sevaske\LaravelDiscourse\Http\Controllers\SsoController::class),
         'middleware' => array_map('trim', explode(',', env(
             'DISCOURSE_SSO_MIDDLEWARE',
-            'discourse.sso.enabled, web, auth, discourse.sso.signature'
+            'web,auth,discourse.sso.signature'
         ))),
 
         // user attributes to provide discourse
