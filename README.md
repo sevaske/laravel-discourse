@@ -156,9 +156,10 @@ The route is registered from `routes/discourse.php` **only when** `config('disco
 For example, you can create your own controller and return JSON instead of redirect.
 
 ```php
+<?php
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request;
 use Sevaske\LaravelDiscourse\Facades\Discourse;
 
 class CustomSsoController
