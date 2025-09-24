@@ -114,7 +114,7 @@ return [
     | Discourse Webhook
     |--------------------------------------------------------------------------
     |
-    | Define the route where Discourse will redirect the user for SSO.
+    | Configure the route and options for handling incoming Discourse webhooks.
     |
     */
     'webhook' => [
