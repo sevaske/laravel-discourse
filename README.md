@@ -113,7 +113,12 @@ DISCOURSE_SSO_ENABLED=false
 
 You can use the `Discourse` facade or resolve it from the container.
 
-### API Example
+### API
+
+This Laravel wrapper exposes the full power of [**sevaske/discourse**](https://github.com/sevaske/discourse).  
+Refer to its documentation for a complete list of API endpoints and usage examples.
+
+Example: 
 
 ```php
 use Sevaske\LaravelDiscourse\Facades\Discourse;
@@ -130,29 +135,41 @@ $response = Discourse::api()->users()->create(
 );
 ```
 
-#### 📖 Full API Documentation
-
-This Laravel wrapper exposes the full power of [**sevaske/discourse**](https://github.com/sevaske/discourse).  
-Refer to its documentation for a complete list of API endpoints and usage examples.
-
 ### Discourse SSO
 
-To validate Discourse Connect (SSO) requests, use middleware **"discourse.sso"**.
+This package ships a ready-to-use route for **Discourse Connect (SSO)**.  
+The route is registered from `routes/discourse.php` **only when** `config('discourse.sso.enabled')` is `true`.
+
+#### ⚙️ How it works
+
+1. Discourse calls your app at `{DISCOURSE_SSO_URI}` with `sso` and `sig`.
+2. Middleware stack (default: `web, auth, discourse.sso.signature`) is applied.
+3. The controller (`DISCOURSE_SSO_CONTROLLER`) builds the signed response.
+4. User is redirected back to Discourse.
+
+#### 🎯 Customization
+
+- **Route URI** → `DISCOURSE_SSO_URI`
+- **Controller** → `DISCOURSE_SSO_CONTROLLER`
+- **Middleware** → `DISCOURSE_SSO_MIDDLEWARE`
+
+For example, you can create your own controller and return JSON instead of redirect.
 
 ```php
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Route;
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
 use Sevaske\LaravelDiscourse\Facades\Discourse;
 
-Route::middleware(['web', 'auth', 'discourse.sso.validate'])->get('/discourse/sso', function(Request $request){
-    $redirectTo = Discourse::connect($request->query('sso'), [
-        'id' => $request->user()->id,
-        'email' => $request->user()->email,
-    ]);
-    
-    return redirect($redirectTo);
-});
+class CustomSsoController
+{
+    public function __invoke(Request $request)
+    {
+        $redirectTo = Discourse::connect($request->query('sso'), $request->user());
 
+        return response()->json(['to_connect' => $redirectTo]);
+    }
+}
 ```
 
 
