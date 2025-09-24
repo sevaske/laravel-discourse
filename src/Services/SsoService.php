@@ -36,9 +36,7 @@ class SsoService
     /**
      * Normalize user to Discourse SSO format
      *
-     * @param Authenticatable|DiscourseUser|Collection|array $user
      *
-     * @return Collection
      *
      * @throws InvalidArgumentException
      */
@@ -56,7 +54,7 @@ class SsoService
                 'moderator' => $user->isDiscourseModerator(),
             ]);
         } elseif ($user instanceof Authenticatable) {
-            $user =  collect([
+            $user = collect([
                 'id' => $user->{config('discourse.sso.user.id')},
                 'email' => $user->{config('discourse.sso.user.email')},
                 'username' => $user->{config('discourse.sso.user.username')},

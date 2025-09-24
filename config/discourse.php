@@ -34,12 +34,12 @@ return [
             'id' => env('DISCOURSE_SSO_USER_ID', 'id'), // external ID
             'email' => env('DISCOURSE_SSO_USER_EMAIL', 'email'), // verified email
             // optional:
-            'name' =>  env('DISCOURSE_SSO_USER_NAME'),
-            'username' =>  env('DISCOURSE_SSO_USER_USERNAME'),
-            'avatar_url' =>  env('DISCOURSE_SSO_USER_AVATAR_URL'),
-            'bio' =>  env('DISCOURSE_SSO_USER_BIO'),
-            'admin' =>  env('DISCOURSE_SSO_USER_ADMIN'),
-            'moderator' =>  env('DISCOURSE_SSO_USER_MODERATOR'),
+            'name' => env('DISCOURSE_SSO_USER_NAME'),
+            'username' => env('DISCOURSE_SSO_USER_USERNAME'),
+            'avatar_url' => env('DISCOURSE_SSO_USER_AVATAR_URL'),
+            'bio' => env('DISCOURSE_SSO_USER_BIO'),
+            'admin' => env('DISCOURSE_SSO_USER_ADMIN'),
+            'moderator' => env('DISCOURSE_SSO_USER_MODERATOR'),
         ],
     ],
 ];

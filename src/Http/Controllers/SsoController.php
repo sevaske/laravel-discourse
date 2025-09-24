@@ -5,8 +5,8 @@ namespace Sevaske\LaravelDiscourse\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Sevaske\Discourse\Exceptions\InvalidArgumentException;
-use Sevaske\LaravelDiscourse\Facades\Discourse;
 use Sevaske\LaravelDiscourse\Events\DiscourseSsoValidated;
+use Sevaske\LaravelDiscourse\Facades\Discourse;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 
 class SsoController extends Controller

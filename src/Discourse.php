@@ -34,7 +34,6 @@ class Discourse
         return $this->api;
     }
 
-
     /**
      * @throws DiscourseException
      */

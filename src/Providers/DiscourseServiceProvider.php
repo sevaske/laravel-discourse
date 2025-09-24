@@ -39,7 +39,7 @@ class DiscourseServiceProvider extends PackageServiceProvider
                 throw new InvalidConfigurationException('Discourse API configuration is missing.');
             }
 
-            $httpFactory = new HttpFactory();
+            $httpFactory = new HttpFactory;
             $client = new Client([
                 'base_uri' => $config['base_uri'],
                 'headers' => [
