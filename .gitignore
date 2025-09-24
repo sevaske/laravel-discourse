@@ -29,4 +29,5 @@ Homestead.json
 .phpactor.json
 auth.json
 
+/workbench
 composer.lock
