@@ -20,6 +20,16 @@ For a full list of available API endpoints and features, see the core [sevaske/d
     - Middleware:
         - `discourse.sso.signature` — validates the incoming SSO signature.
 
+- 📡 **Webhooks**
+    - Enable via `.env` or config file:
+        - `DISCOURSE_WEBHOOKS_ENABLED` — enable/disable webhook route.
+        - `DISCOURSE_WEBHOOKS_SECRET` — secret for signature validation.
+        - `DISCOURSE_WEBHOOKS_URI` — the route path (default: `/discourse/webhook`).
+        - `DISCOURSE_WEBHOOKS_CONTROLLER` — controller class handling the request.
+        - `DISCOURSE_WEBHOOKS_MIDDLEWARE` — comma-separated list of middleware (default: `discourse.webhook.signature`).
+    - Dispatches `DiscourseWebhookReceived` event with:
+        - `eventName`, `eventType`, `eventId`, and `payload`.
+
 - 📡 **API client integration**
     - Access the full Discourse API through `$discourse->api()`.
     - Covers categories, users, posts, groups, private messages, webhooks, and more.
@@ -54,6 +64,8 @@ php artisan vendor:publish --tag="discourse-config"
 It creates the config file `config/discourse.php`:
 
 ```php
+<?php
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -63,11 +75,10 @@ return [
     'base_url' => env('DISCOURSE_BASE_URL'),
     'api_key' => env('DISCOURSE_API_KEY'),
     'api_username' => env('DISCOURSE_API_USERNAME'),
-    'secret' => env('DISCOURSE_SECRET'),
 
     /*
     |--------------------------------------------------------------------------
-    | Discourse SSO Route
+    | Discourse Connect (SSO)
     |--------------------------------------------------------------------------
     |
     | Define the route where Discourse will redirect the user for SSO.
@@ -75,12 +86,13 @@ return [
     */
     'sso' => [
         'enabled' => env('DISCOURSE_SSO_ENABLED', false),
+        'secret' => env('DISCOURSE_SSO_SECRET'),
         'uri' => env('DISCOURSE_SSO_URI', '/discourse/sso'),
-        'controller' => env('DISCOURSE_SSO_CONTROLLER', \Sevaske\LaravelDiscourse\Http\Controllers\SsoController::class),
-        'middleware' => array_map('trim', explode(',', env(
-            'DISCOURSE_SSO_MIDDLEWARE',
-            'web,auth,discourse.sso.signature'
-        ))),
+        'controller' => env(
+            'DISCOURSE_SSO_CONTROLLER', 
+            \Sevaske\LaravelDiscourse\Http\Controllers\SsoController::class
+        ),
+        'middleware' => env_array('DISCOURSE_SSO_MIDDLEWARE', 'web,auth,discourse.sso.signature'),
 
         // user attributes to provide discourse
         'user' => [
@@ -88,15 +100,35 @@ return [
             'id' => env('DISCOURSE_SSO_USER_ID', 'id'), // external ID
             'email' => env('DISCOURSE_SSO_USER_EMAIL', 'email'), // verified email
             // optional:
-            'name' =>  env('DISCOURSE_SSO_USER_NAME'),
-            'username' =>  env('DISCOURSE_SSO_USER_USERNAME'),
-            'avatar_url' =>  env('DISCOURSE_SSO_USER_AVATAR_URL'),
-            'bio' =>  env('DISCOURSE_SSO_USER_BIO'),
-            'admin' =>  env('DISCOURSE_SSO_USER_ADMIN'),
-            'moderator' =>  env('DISCOURSE_SSO_USER_MODERATOR'),
+            'name' => env('DISCOURSE_SSO_USER_NAME'),
+            'username' => env('DISCOURSE_SSO_USER_USERNAME'),
+            'avatar_url' => env('DISCOURSE_SSO_USER_AVATAR_URL'),
+            'bio' => env('DISCOURSE_SSO_USER_BIO'),
+            'admin' => env('DISCOURSE_SSO_USER_ADMIN'),
+            'moderator' => env('DISCOURSE_SSO_USER_MODERATOR'),
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discourse Webhook
+    |--------------------------------------------------------------------------
+    |
+    | Define the route where Discourse will redirect the user for SSO.
+    |
+    */
+    'webhook' => [
+        'enabled' => env('DISCOURSE_WEBHOOK_ENABLED', false),
+        'secret' => env('DISCOURSE_WEBHOOK_SECRET'),
+        'uri' => env('DISCOURSE_WEBHOOK_URI', '/discourse/webhook'),
+        'controller' => env(
+            'DISCOURSE_WEBHOOK_CONTROLLER', 
+            \Sevaske\LaravelDiscourse\Http\Controllers\WebhookController::class
+        ),
+        'middleware' => env_array('DISCOURSE_WEBHOOK_MIDDLEWARE', 'discourse.webhook.signature'),
+    ],
 ];
+
 ```
 
 Update your .env:
@@ -104,8 +136,12 @@ Update your .env:
 DISCOURSE_BASE_URI=https://your-discourse-url.com
 DISCOURSE_API_KEY=your-api-key
 DISCOURSE_API_USERNAME=system
-DISCOURSE_SECRET=super-secret
+# sso
 DISCOURSE_SSO_ENABLED=false
+DISCOURSE_SSO_SECRET=super-secret
+# webhook
+DISCOURSE_SSO_ENABLED=false
+DISCOURSE_SSO_SECRET=super-secret
 ```
 
 
@@ -171,6 +207,33 @@ class CustomSsoController
         return response()->json(['to_connect' => $redirectTo]);
     }
 }
+```
+
+
+### Webhook
+
+Short: enable webhooks, protect them with signature verification + TLS, and listen for the dispatched event.
+Enable webhooks via your `.env` or config file:
+
+```env
+DISCOURSE_WEBHOOKS_ENABLED=true
+DISCOURSE_WEBHOOKS_SECRET=your-webhook-secret
+```
+
+When a webhook is received, the package will dispatch the **Sevaske\LaravelDiscourse\Events\DiscourseWebhookReceived** event.
+It contains
+- eventName
+- eventType
+- eventId
+- payload
+
+Example listener:
+```php
+use Sevaske\LaravelDiscourse\Events\DiscourseWebhookReceived;
+
+Event::listen(DiscourseWebhookReceived::class, function ($event) {
+    \Log::info("Webhook received: {$event->eventName}", $event->payload);
+});
 ```
 
 

@@ -8,7 +8,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
 use Sevaske\Discourse\Exceptions\DiscourseException;
 use Sevaske\Discourse\Services\Api;
-use Sevaske\Discourse\Services\Signer;
 use Sevaske\LaravelDiscourse\Contracts\DiscourseUser;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 
@@ -18,12 +17,7 @@ class Discourse
 
     protected ?Api $api = null;
 
-    public function __construct(protected Signer $signer, protected Closure $apiFactory) {}
-
-    public function signer(): Signer
-    {
-        return $this->signer;
-    }
+    public function __construct(protected Closure $apiFactory) {}
 
     public function api(): Api
     {

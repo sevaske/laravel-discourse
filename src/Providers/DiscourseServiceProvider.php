@@ -7,9 +7,11 @@ use GuzzleHttp\Psr7\HttpFactory;
 use Illuminate\Routing\Router;
 use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Signer;
+use Sevaske\Discourse\Services\WebhookSigner;
 use Sevaske\LaravelDiscourse\Discourse;
 use Sevaske\LaravelDiscourse\Exceptions\InvalidConfigurationException;
 use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
+use Sevaske\LaravelDiscourse\Http\Middleware\VerifyWebhookSignature;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -28,7 +30,12 @@ class DiscourseServiceProvider extends PackageServiceProvider
     {
         // discourse connect request signer
         $this->app->singleton(Signer::class, function ($app) {
-            return new Signer($app['config']->get('discourse.secret'));
+            return new Signer($app['config']->get('discourse.sso.secret'));
+        });
+
+        // discourse webhook request signer
+        $this->app->singleton(WebhookSigner::class, function ($app) {
+            return new Signer($app['config']->get('discourse.webhook.secret'));
         });
 
         // api client
@@ -51,7 +58,7 @@ class DiscourseServiceProvider extends PackageServiceProvider
             return new Api($client, $httpFactory, $httpFactory);
         });
 
-        // discourse connect service
+        // discourse connect service (SSO)
         $this->app->singleton(SsoService::class, function ($app) {
             return new SsoService($app->make(Signer::class));
         });
@@ -59,7 +66,6 @@ class DiscourseServiceProvider extends PackageServiceProvider
         // main class
         $this->app->singleton(Discourse::class, function ($app) {
             return new Discourse(
-                signer: $app->make(Signer::class),
                 apiFactory: fn () => $app->make(Api::class),
             );
         });
@@ -73,6 +79,7 @@ class DiscourseServiceProvider extends PackageServiceProvider
         // sso middleware
         $this->app->afterResolving(Router::class, function (Router $router) {
             $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
+            $router->aliasMiddleware('discourse.webhook.signature', VerifyWebhookSignature::class);
         });
     }
 }
