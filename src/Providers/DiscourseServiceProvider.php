@@ -5,14 +5,12 @@ namespace Sevaske\LaravelDiscourse\Providers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Route;
 use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Signer;
 use Sevaske\LaravelDiscourse\Discourse;
 use Sevaske\LaravelDiscourse\Exceptions\InvalidConfigurationException;
-use Sevaske\LaravelDiscourse\Http\Controllers\SsoController;
 use Sevaske\LaravelDiscourse\Http\Middleware\EnsureDiscourseSsoEnabled;
-use Sevaske\LaravelDiscourse\Http\Middleware\ValidateSsoSignature;
+use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -23,6 +21,7 @@ class DiscourseServiceProvider extends PackageServiceProvider
     {
         $package
             ->name('discourse')
+            ->hasRoute('discourse')
             ->hasConfigFile();
     }
 
@@ -75,23 +74,7 @@ class DiscourseServiceProvider extends PackageServiceProvider
         // sso middleware
         $this->app->afterResolving(Router::class, function (Router $router) {
             $router->aliasMiddleware('discourse.sso.enabled', EnsureDiscourseSsoEnabled::class);
-            $router->aliasMiddleware('discourse.sso.validate', ValidateSsoSignature::class);
+            $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
         });
-
-        // sso router
-        $this->registerSsoRoute();
-    }
-
-    protected function registerSsoRoute(): void
-    {
-        $config = $this->app['config']->get('discourse.sso');
-
-        if (! $config['enabled']) {
-            return;
-        }
-
-        Route::middleware($config['middleware'])
-            ->get($config['uri'], [SsoController::class, '__invoke'])
-            ->name('discourse.sso');
     }
 }
