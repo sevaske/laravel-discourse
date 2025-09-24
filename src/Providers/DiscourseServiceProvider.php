@@ -9,7 +9,6 @@ use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Signer;
 use Sevaske\LaravelDiscourse\Discourse;
 use Sevaske\LaravelDiscourse\Exceptions\InvalidConfigurationException;
-use Sevaske\LaravelDiscourse\Http\Middleware\EnsureDiscourseSsoEnabled;
 use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 use Spatie\LaravelPackageTools\Package;
@@ -73,7 +72,6 @@ class DiscourseServiceProvider extends PackageServiceProvider
     {
         // sso middleware
         $this->app->afterResolving(Router::class, function (Router $router) {
-            $router->aliasMiddleware('discourse.sso.enabled', EnsureDiscourseSsoEnabled::class);
             $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
         });
     }

@@ -10,11 +10,29 @@ For a full list of available API endpoints and features, see the core [sevaske/d
 
 ## ✨ Features
 
-- 🔑 **SSO support** — easily sign and validate Discourse SSO payloads.
-- 📡 **API client integration** — access Discourse API via `$discourse->api()`.
-- ⚡ **Laravel-ready** — comes with Service Provider, Facade, and Middleware.
-- 🧩 Built on top of [`sevaske/discourse`](https://github.com/sevaske/discourse).
+- 🔑 **Discourse Connect (SSO)**
+    - Full support for [Discourse SSO](https://meta.discourse.org/t/official-single-sign-on-for-discourse-sso/13045): signing and validating payloads.
+    - Built-in `SsoController`, fully configurable via `.env`:
+        - `DISCOURSE_SSO_ENABLED` — enable/disable the SSO route.
+        - `DISCOURSE_SSO_URI` — the route path (default: `/discourse/sso`).
+        - `DISCOURSE_SSO_CONTROLLER` — controller class handling the request.
+        - `DISCOURSE_SSO_MIDDLEWARE` — comma-separated list of middleware (default: `web, auth, discourse.sso.signature`).
+    - Middleware:
+        - `discourse.sso.signature` — validates the incoming SSO signature.
 
+- 📡 **API client integration**
+    - Access the full Discourse API through `$discourse->api()`.
+    - Covers categories, users, posts, groups, private messages, webhooks, and more.
+    - Automatically signs requests with your API key and username.
+
+- ⚡ **Laravel-ready**
+    - Service Provider auto-registration.
+    - Facade `Discourse` for clean syntax.
+    - Middleware aliases registered automatically.
+
+- 🧩 **Built on top of [`sevaske/discourse`](https://github.com/sevaske/discourse)**
+    - All low-level functionality extracted into a framework-agnostic core package.
+    - This wrapper adds Laravel integration, convenience, and conventions.
 
 ## 📦 Installation
 
@@ -37,10 +55,47 @@ It creates the config file `config/discourse.php`:
 
 ```php
 return [
-    'base_uri' => env('DISCOURSE_BASE_URI', ''),
+    /*
+    |--------------------------------------------------------------------------
+    | Discourse Base Settings
+    |--------------------------------------------------------------------------
+    */
+    'base_url' => env('DISCOURSE_BASE_URL'),
     'api_key' => env('DISCOURSE_API_KEY'),
     'api_username' => env('DISCOURSE_API_USERNAME'),
     'secret' => env('DISCOURSE_SECRET'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discourse SSO Route
+    |--------------------------------------------------------------------------
+    |
+    | Define the route where Discourse will redirect the user for SSO.
+    |
+    */
+    'sso' => [
+        'enabled' => env('DISCOURSE_SSO_ENABLED', false),
+        'uri' => env('DISCOURSE_SSO_URI', '/discourse/sso'),
+        'controller' => env('DISCOURSE_SSO_CONTROLLER', \Sevaske\LaravelDiscourse\Http\Controllers\SsoController::class),
+        'middleware' => array_map('trim', explode(',', env(
+            'DISCOURSE_SSO_MIDDLEWARE',
+            'discourse.sso.enabled, web, auth, discourse.sso.signature'
+        ))),
+
+        // user attributes to provide discourse
+        'user' => [
+            // required:
+            'id' => env('DISCOURSE_SSO_USER_ID', 'id'), // external ID
+            'email' => env('DISCOURSE_SSO_USER_EMAIL', 'email'), // verified email
+            // optional:
+            'name' =>  env('DISCOURSE_SSO_USER_NAME'),
+            'username' =>  env('DISCOURSE_SSO_USER_USERNAME'),
+            'avatar_url' =>  env('DISCOURSE_SSO_USER_AVATAR_URL'),
+            'bio' =>  env('DISCOURSE_SSO_USER_BIO'),
+            'admin' =>  env('DISCOURSE_SSO_USER_ADMIN'),
+            'moderator' =>  env('DISCOURSE_SSO_USER_MODERATOR'),
+        ],
+    ],
 ];
 ```
 
@@ -50,6 +105,7 @@ DISCOURSE_BASE_URI=https://your-discourse-url.com
 DISCOURSE_API_KEY=your-api-key
 DISCOURSE_API_USERNAME=system
 DISCOURSE_SECRET=super-secret
+DISCOURSE_SSO_ENABLED=false
 ```
 
 
@@ -70,7 +126,7 @@ $response = Discourse::api()->users()->create(
     name: 'John Doe',
     email: 'john@example.com',
     password: 'secret123',
-    username: 'johndoe'
+    username: 'john'
 );
 ```
 

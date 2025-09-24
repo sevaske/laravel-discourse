@@ -22,6 +22,11 @@ return [
     'sso' => [
         'enabled' => env('DISCOURSE_SSO_ENABLED', false),
         'uri' => env('DISCOURSE_SSO_URI', '/discourse/sso'),
+        'controller' => env('DISCOURSE_SSO_CONTROLLER', \Sevaske\LaravelDiscourse\Http\Controllers\SsoController::class),
+        'middleware' => array_map('trim', explode(',', env(
+            'DISCOURSE_SSO_MIDDLEWARE',
+            'web,auth,discourse.sso.signature'
+        ))),
 
         // user attributes to provide discourse
         'user' => [
