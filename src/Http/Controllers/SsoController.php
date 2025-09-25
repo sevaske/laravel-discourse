@@ -4,23 +4,18 @@ namespace Sevaske\LaravelDiscourse\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Sevaske\Discourse\Exceptions\InvalidArgumentException;
-use Sevaske\LaravelDiscourse\Events\DiscourseSsoValidated;
-use Sevaske\LaravelDiscourse\Facades\Discourse;
+use Sevaske\Discourse\Contracts\DiscourseExceptionContract;
 use Sevaske\LaravelDiscourse\Services\SsoService;
 
 class SsoController extends Controller
 {
     /**
-     * @throws InvalidArgumentException
+     * @throws DiscourseExceptionContract
      */
     public function __invoke(Request $request, SsoService $ssoService)
     {
-        $sso = $request->query('sso');
-        $user = $ssoService->normalizeUser($request->user())->toArray();
-        $redirectTo = Discourse::connect($sso, $user);
-
-        event(new DiscourseSsoValidated($sso, $user, $redirectTo));
+        $sso = $request->input('sso');
+        $redirectTo = $ssoService->connect($sso, $request->user());
 
         return redirect($redirectTo);
     }

@@ -20,11 +20,11 @@ class VerifySsoSignature
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        if (! $payload = $request->query('sso')) {
+        if (! $payload = $request->input('sso')) {
             throw new InvalidRequestSignature('The payload is not passed');
         }
 
-        if (! $signature = $request->query('sig')) {
+        if (! $signature = $request->input('sig')) {
             throw new InvalidRequestSignature('The signature is not passed');
         }
 
