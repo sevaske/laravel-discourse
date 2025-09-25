@@ -4,6 +4,7 @@ namespace Sevaske\LaravelDiscourse\Providers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Router;
 use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Signer;
@@ -13,30 +14,23 @@ use Sevaske\LaravelDiscourse\Exceptions\InvalidConfigurationException;
 use Sevaske\LaravelDiscourse\Http\Middleware\VerifySsoSignature;
 use Sevaske\LaravelDiscourse\Http\Middleware\VerifyWebhookSignature;
 use Sevaske\LaravelDiscourse\Services\SsoService;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class DiscourseServiceProvider extends PackageServiceProvider
+class DiscourseServiceProvider extends ServiceProvider
 {
-    public function configurePackage(Package $package): void
+    public function register(): void
     {
-        $package
-            ->name('discourse')
-            ->hasRoute('discourse')
-            ->hasConfigFile();
-    }
+        // merge config (equivalent of ->hasConfigFile())
+        $this->mergeConfigFrom(__DIR__ . '/../../config/discourse.php', 'discourse');
 
-    public function registeringPackage(): void
-    {
-        // discourse connect request signer
-        $this->app->singleton(Signer::class, function ($app) {
-            return new Signer($app['config']->get('discourse.sso.secret'));
-        });
+        // sso signer
+        $this->app->singleton(Signer::class, fn ($app) =>
+        new Signer($app['config']->get('discourse.sso.secret'))
+        );
 
-        // discourse webhook request signer
-        $this->app->singleton(WebhookSigner::class, function ($app) {
-            return new Signer($app['config']->get('discourse.webhook.secret'));
-        });
+        // webhook signer
+        $this->app->singleton(WebhookSigner::class, fn ($app) =>
+        new WebhookSigner($app['config']->get('discourse.webhook.secret'))
+        );
 
         // api client
         $this->app->singleton(Api::class, function ($app) {
@@ -58,28 +52,32 @@ class DiscourseServiceProvider extends PackageServiceProvider
             return new Api($client, $httpFactory, $httpFactory);
         });
 
-        // discourse connect service (SSO)
-        $this->app->singleton(SsoService::class, function ($app) {
-            return new SsoService($app->make(Signer::class));
-        });
+        // sso service
+        $this->app->singleton(SsoService::class, fn ($app) =>
+        new SsoService($app->make(Signer::class))
+        );
 
         // main class
-        $this->app->singleton(Discourse::class, function ($app) {
-            return new Discourse(
-                apiFactory: fn () => $app->make(Api::class),
-            );
-        });
+        $this->app->singleton(Discourse::class, fn ($app) =>
+        new Discourse(apiFactory: fn () => $app->make(Api::class))
+        );
 
-        // facade
+        // facade accessor
         $this->app->alias(Discourse::class, 'discourse');
     }
 
-    public function bootingPackage(): void
+    public function boot(Router $router): void
     {
-        // sso middleware
-        $this->app->afterResolving(Router::class, function (Router $router) {
-            $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
-            $router->aliasMiddleware('discourse.webhook.signature', VerifyWebhookSignature::class);
-        });
+        // load routes (equivalent of ->hasRoute())
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/discourse.php');
+
+        // register middlewares
+        $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
+        $router->aliasMiddleware('discourse.webhook.signature', VerifyWebhookSignature::class);
+
+        // publish config
+        $this->publishes([
+            __DIR__ . '/../../config/discourse.php' => config_path('discourse.php'),
+        ], 'discourse-config');
     }
 }
