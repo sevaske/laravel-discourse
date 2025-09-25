@@ -36,13 +36,13 @@ class DiscourseServiceProvider extends ServiceProvider
         $this->app->singleton(Api::class, function ($app) {
             $config = $app['config']->get('discourse');
 
-            if (empty($config['base_uri']) || empty($config['api_key']) || empty($config['api_username'])) {
+            if (empty($config['base_url']) || empty($config['api_key']) || empty($config['api_username'])) {
                 throw new InvalidConfigurationException('Discourse API configuration is missing.');
             }
 
             $httpFactory = new HttpFactory;
             $client = new Client([
-                'base_uri' => $config['base_uri'],
+                'base_uri' => $config['base_url'],
                 'headers' => [
                     'Api-Key' => $config['api_key'],
                     'Api-Username' => $config['api_username'],
