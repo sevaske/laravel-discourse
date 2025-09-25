@@ -14,13 +14,12 @@ class SsoController extends Controller
     /**
      * @throws InvalidArgumentException
      */
-    public function __invoke(Request $request, SsoService $connectService)
+    public function __invoke(Request $request, SsoService $ssoService)
     {
         $sso = $request->query('sso');
-        $user = $connectService->normalizeUser($request->user())->toArray();
+        $user = $ssoService->normalizeUser($request->user())->toArray();
         $redirectTo = Discourse::connect($sso, $user);
 
-        // debugging or logging
         event(new DiscourseSsoValidated($sso, $user, $redirectTo));
 
         return redirect($redirectTo);
