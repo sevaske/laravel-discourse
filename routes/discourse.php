@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // discourse webhook
 if (config('discourse.webhook.enabled')) {
-    Route::get(config('discourse.webhook.uri'), config('discourse.webhook.controller'))
+    Route::post(config('discourse.webhook.uri'), config('discourse.webhook.controller'))
         ->middleware(config('discourse.webhook.middleware'))
         ->name('discourse.webhook');
 }
