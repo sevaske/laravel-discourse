@@ -4,8 +4,10 @@ namespace Sevaske\LaravelDiscourse\Providers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Router;
+use Illuminate\Support\ServiceProvider;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Sevaske\Discourse\Services\Api;
 use Sevaske\Discourse\Services\Signer;
 use Sevaske\Discourse\Services\WebhookSigner;
@@ -17,59 +19,73 @@ use Sevaske\LaravelDiscourse\Services\SsoService;
 
 class DiscourseServiceProvider extends ServiceProvider
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws InvalidConfigurationException
+     * @throws NotFoundExceptionInterface
+     */
     public function register(): void
     {
         // merge config (equivalent of ->hasConfigFile())
-        $this->mergeConfigFrom(__DIR__ . '/../../config/discourse.php', 'discourse');
+        $this->mergeConfigFrom(__DIR__.'/../../config/discourse.php', 'discourse');
 
-        // sso signer
-        $this->app->singleton(Signer::class, fn ($app) =>
-        new Signer($app['config']->get('discourse.sso.secret'))
-        );
+        $config = (array) $this->app['config']->get('discourse');
 
-        // webhook signer
-        $this->app->singleton(WebhookSigner::class, fn ($app) =>
-        new WebhookSigner($app['config']->get('discourse.webhook.secret'))
-        );
+        // sso
+        if ($config['sso']['enabled']) {
+            if (! $ssoSecret = $config['sso']['secret']) {
+                throw new InvalidConfigurationException('Discourse sso secret is missing.');
+            }
 
-        // api client
-        $this->app->singleton(Api::class, function ($app) {
-            $config = $app['config']->get('discourse');
+            $this->app->singleton(Signer::class, fn () => new Signer($ssoSecret));
+            $this->app->singleton(SsoService::class, function ($app) {
+                return new SsoService($app->make(Signer::class));
+            });
+        }
 
-            if (empty($config['base_url']) || empty($config['api_key']) || empty($config['api_username'])) {
+        // webhook
+        if ($config['webhook']['enabled']) {
+            if (! $webhookSecret = $config['webhook']['secret']) {
+                throw new InvalidConfigurationException('Discourse webhook secret is missing.');
+            }
+
+            $this->app->singleton(WebhookSigner::class, function () use ($webhookSecret) {
+                return new WebhookSigner($webhookSecret);
+            });
+        }
+
+        // api client & facade
+        if ($config['base_url']) {
+            if (empty($config['api_key']) || empty($config['api_username'])) {
                 throw new InvalidConfigurationException('Discourse API configuration is missing.');
             }
 
-            $httpFactory = new HttpFactory;
-            $client = new Client([
-                'base_uri' => $config['base_url'],
-                'headers' => [
-                    'Api-Key' => $config['api_key'],
-                    'Api-Username' => $config['api_username'],
-                ],
-            ]);
+            $this->app->singleton(Api::class, function () use ($config) {
+                $httpFactory = new HttpFactory;
+                $client = new Client([
+                    'base_uri' => $config['base_url'],
+                    'headers' => [
+                        'Api-Key' => $config['api_key'],
+                        'Api-Username' => $config['api_username'],
+                    ],
+                ]);
 
-            return new Api($client, $httpFactory, $httpFactory);
-        });
+                return new Api($client, $httpFactory, $httpFactory);
+            });
 
-        // sso service
-        $this->app->singleton(SsoService::class, fn ($app) =>
-        new SsoService($app->make(Signer::class))
-        );
+            // main class & facade alias
+            $this->app->singleton(Discourse::class, function ($app) {
+                return new Discourse(apiFactory: fn() => $app->make(Api::class));
+            });
 
-        // main class
-        $this->app->singleton(Discourse::class, fn ($app) =>
-        new Discourse(apiFactory: fn () => $app->make(Api::class))
-        );
-
-        // facade accessor
-        $this->app->alias(Discourse::class, 'discourse');
+            $this->app->alias(Discourse::class, 'discourse');
+        }
     }
 
     public function boot(Router $router): void
     {
         // load routes (equivalent of ->hasRoute())
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/discourse.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/discourse.php');
 
         // register middlewares
         $router->aliasMiddleware('discourse.sso.signature', VerifySsoSignature::class);
@@ -77,7 +93,7 @@ class DiscourseServiceProvider extends ServiceProvider
 
         // publish config
         $this->publishes([
-            __DIR__ . '/../../config/discourse.php' => config_path('discourse.php'),
+            __DIR__.'/../../config/discourse.php' => config_path('discourse.php'),
         ], 'discourse-config');
     }
 }

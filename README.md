@@ -86,7 +86,7 @@ return [
     */
     'sso' => [
         'enabled' => env('DISCOURSE_SSO_ENABLED', false),
-        'secret' => env('DISCOURSE_SSO_SECRET'),
+        'secret' => env('DISCOURSE_SSO_SECRET', ''),
         'uri' => env('DISCOURSE_SSO_URI', '/discourse/sso'),
         'controller' => env(
             'DISCOURSE_SSO_CONTROLLER', 
@@ -119,7 +119,7 @@ return [
     */
     'webhook' => [
         'enabled' => env('DISCOURSE_WEBHOOK_ENABLED', false),
-        'secret' => env('DISCOURSE_WEBHOOK_SECRET'),
+        'secret' => env('DISCOURSE_WEBHOOK_SECRET', ''),
         'uri' => env('DISCOURSE_WEBHOOK_URI', '/discourse/webhook'),
         'controller' => env(
             'DISCOURSE_WEBHOOK_CONTROLLER', 
